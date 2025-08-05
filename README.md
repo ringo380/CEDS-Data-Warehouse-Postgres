@@ -61,7 +61,7 @@ psql -d ceds_data_warehouse_v11_0_0_0 -f ../ddl/CEDS-Data-Warehouse-V11.0.0.0-Po
 # Load CEDS Elements and Option Set values (requires tables from step 3)
 psql -d ceds_data_warehouse_v11_0_0_0 -f postgresql-dimension-data-loader.sql
 
-# Populate junk tables
+# Populate essential dimension tables (races, ages, dates)
 psql -d ceds_data_warehouse_v11_0_0_0 -f junk-table-population-postgresql.sql
 ```
 

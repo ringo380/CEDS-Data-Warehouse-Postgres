@@ -328,9 +328,18 @@ psql -U ceds_admin -d ceds_data_warehouse_v11_0_0_0 -f ../ddl/CEDS-Data-Warehous
 
 #### Step 4: Load Dimension Data
 ```bash
-# Load dimension reference data
+# Load dimension reference data (demographics, program types, grade levels)
 psql -U ceds_admin -d ceds_data_warehouse_v11_0_0_0 -f postgresql-dimension-data-loader.sql
+
+# Populate essential dimension tables (races, ages, dates 2000-2050)
+# This script creates the foundational lookup data needed for fact table loading
+psql -U ceds_admin -d ceds_data_warehouse_v11_0_0_0 -f junk-table-population-postgresql.sql
 ```
+
+**What Step 4 Accomplishes:**
+- **Dimension Loader**: Creates demographic combinations (19,440+ records), program types, grade levels
+- **Junk Table Population**: Adds race categories, age ranges (0-130), and 50 years of date records
+- **Essential Foundation**: These lookup tables are required before loading any fact table data
 
 ### 4. Validate Installation
 ```bash
@@ -760,7 +769,35 @@ sudo crontab -e
 
 ### Common Issues and Solutions
 
-#### 1. Connection Issues
+#### 1. Script Execution Issues
+
+**Problem**: "relation does not exist" errors during dimension data loading
+```
+ERROR: relation "rds.dim_ae_demographics" does not exist
+```
+
+**Solution**: 
+```bash
+# Ensure you run scripts in the correct order:
+# 1. First create the database structure
+psql -d ceds_data_warehouse_v11_0_0_0 -f ../ddl/CEDS-Data-Warehouse-V11.0.0.0-PostgreSQL.sql
+
+# 2. Then load dimension data
+psql -d ceds_data_warehouse_v11_0_0_0 -f postgresql-dimension-data-loader.sql
+
+# 3. Finally populate junk tables
+psql -d ceds_data_warehouse_v11_0_0_0 -f junk-table-population-postgresql.sql
+```
+
+**Problem**: SQL Server syntax errors in PostgreSQL
+```
+ERROR: syntax error at or near "PRINT"
+ERROR: column "current_date" is reserved
+```
+
+**Solution**: Ensure you're using the PostgreSQL-converted scripts, not original SQL Server versions. All scripts in `src/conversion-tools/` are PostgreSQL-compatible.
+
+#### 2. Connection Issues
 ```bash
 # Check if PostgreSQL is running
 sudo systemctl status postgresql
