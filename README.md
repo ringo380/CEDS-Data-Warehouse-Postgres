@@ -22,9 +22,39 @@ Modeled for longitudinal storage and reporting of P-20W data, the Common Educati
 - **Python 3.8+** (for conversion tools)
 - PostgreSQL client tools (psql, pgAdmin, or similar)
 
-### Fresh PostgreSQL Installation
+### Automated Installation (Recommended)
 
-To create a new instance of the CEDS Data Warehouse on PostgreSQL, follow these steps:
+The easiest way to set up the CEDS Data Warehouse is using our interactive setup script:
+
+```bash
+# Clone the repository
+git clone <repository-url> ceds-postgresql
+cd ceds-postgresql
+
+# Run the interactive setup script
+./setup.sh
+```
+
+**What the setup script does:**
+- ✅ Validates system requirements and PostgreSQL installation
+- ✅ Guides you through configuration with smart defaults
+- ✅ Creates database with optimized settings
+- ✅ Sets up schemas, security roles, and admin users
+- ✅ Deploys complete database structure (100+ tables)
+- ✅ Loads dimension data and essential lookup tables
+- ✅ Runs comprehensive validation tests
+- ✅ Provides detailed installation report and next steps
+
+**Key Features:**
+- **Interactive Configuration**: Smart prompts with sensible defaults
+- **Error Recovery**: Automatic cleanup and recovery on failures
+- **Progress Tracking**: Visual progress bars and detailed logging
+- **Validation**: Multi-level verification of installation success
+- **Flexible**: Development and production configuration options
+
+### Manual Installation
+
+If you prefer to install manually or need custom configuration, follow these steps:
 
 #### 1. Set Up PostgreSQL Environment
 ```bash
