@@ -109,8 +109,8 @@ ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET row_security = off;  -- Enable 
 -- Equivalent to SQL Server memory and performance settings
 -- Note: These may need adjustment based on server specifications
 
--- Memory Settings (adjust based on available RAM)
-ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET shared_buffers = '256MB';     -- 25% of RAM for dedicated server
+-- Memory Settings (only database-level parameters, others require postgresql.conf)
+-- NOTE: shared_buffers, wal_buffers require server restart and must be set in postgresql.conf
 ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET effective_cache_size = '1GB'; -- 50-75% of available RAM
 ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET work_mem = '32MB';            -- Per-operation memory
 ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET maintenance_work_mem = '256MB'; -- Maintenance operations
@@ -126,28 +126,30 @@ ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET cpu_operator_cost = 0.0025;
 -- AUTOVACUUM SETTINGS (SQL Server AUTO_SHRINK/AUTO_UPDATE_STATISTICS equivalent)
 -- =============================================================================
 
--- Configure autovacuum for data warehouse workload
-ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET autovacuum = on;
-ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET autovacuum_naptime = '5min';           -- More frequent for DW
-ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET autovacuum_vacuum_threshold = 500;
-ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET autovacuum_vacuum_scale_factor = 0.1;  -- 10% change triggers vacuum
-ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET autovacuum_analyze_threshold = 250;
-ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET autovacuum_analyze_scale_factor = 0.05; -- 5% change triggers analyze
-
--- Vacuum cost settings (prevent vacuum from overwhelming system)
-ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET autovacuum_vacuum_cost_delay = 10;     -- ms delay
-ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET autovacuum_vacuum_cost_limit = 1000;   -- Cost limit
+-- NOTE: Autovacuum settings are server-level and must be configured in postgresql.conf
+-- These database-level settings are not available via ALTER DATABASE
+-- Add to postgresql.conf instead:
+--   autovacuum = on
+--   autovacuum_naptime = 5min
+--   autovacuum_vacuum_threshold = 500
+--   autovacuum_vacuum_scale_factor = 0.1
+--   autovacuum_analyze_threshold = 250
+--   autovacuum_analyze_scale_factor = 0.05
+--   autovacuum_vacuum_cost_delay = 10ms
+--   autovacuum_vacuum_cost_limit = 1000
 
 -- =============================================================================
 -- LOGGING AND MONITORING SETTINGS
 -- =============================================================================
 
--- Configure logging for monitoring and troubleshooting
+-- Configure logging for monitoring and troubleshooting (database-level only)
 ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET log_min_duration_statement = 5000;    -- Log slow queries (5 seconds)
-ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET log_connections = off;                -- Enable if needed for auditing
-ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET log_disconnections = off;             -- Enable if needed for auditing
-ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET log_checkpoints = on;
 ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET log_lock_waits = on;                  -- Log lock waits
+
+-- NOTE: These logging settings require postgresql.conf configuration (server-level):
+--   log_connections = on              -- Connection logging
+--   log_disconnections = on           -- Disconnection logging  
+--   log_checkpoints = on              -- Checkpoint logging
 
 -- Statement logging (adjust based on needs)
 ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET log_statement = 'ddl';                -- Log DDL statements
@@ -184,13 +186,11 @@ max_client_conn = 200                    -- Total client connections
 ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET seq_page_cost = 1.0;
 ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET random_page_cost = 1.5;  -- Lower for SSD
 
--- Checkpoint settings for bulk loading
-ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET checkpoint_completion_target = 0.8;
-
--- WAL settings for bulk operations  
-ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET wal_buffers = '16MB';
-ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET checkpoint_segments = 64;     -- PostgreSQL < 9.5
--- ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET max_wal_size = '2GB';      -- PostgreSQL >= 9.5
+-- NOTE: WAL and checkpoint settings require postgresql.conf configuration (server-level):
+--   checkpoint_completion_target = 0.8      -- Checkpoint completion target
+--   wal_buffers = 16MB                      -- WAL buffer size (requires restart)
+--   max_wal_size = 2GB                      -- Modern PostgreSQL (replaces checkpoint_segments)
+--   checkpoint_segments = 64                -- Deprecated in PostgreSQL 9.5+
 
 -- Enable parallel query for large analytical queries (PostgreSQL 9.6+)
 ALTER DATABASE ceds_data_warehouse_v11_0_0_0 SET max_parallel_workers_per_gather = 4;
@@ -250,12 +250,14 @@ RETURNS void AS $$
 BEGIN
     -- Temporarily optimize for bulk loading
     PERFORM set_config('synchronous_commit', 'off', false);
-    PERFORM set_config('wal_buffers', '64MB', false);  
-    PERFORM set_config('checkpoint_completion_target', '0.9', false);
-    PERFORM set_config('checkpoint_segments', '128', false);
+    -- NOTE: wal_buffers and checkpoint settings require server restart or postgresql.conf changes
+    -- PERFORM set_config('wal_buffers', '64MB', false);  -- Server restart required
+    -- PERFORM set_config('checkpoint_completion_target', '0.9', false); -- Server restart required
+    -- checkpoint_segments deprecated in PostgreSQL 9.5+, use max_wal_size instead
     
-    -- Disable autovacuum during bulk loads
-    PERFORM set_config('autovacuum', 'off', false);
+    -- NOTE: autovacuum is server-level setting, cannot be changed per session
+    -- Disable autovacuum during bulk loads by setting it in postgresql.conf
+    -- PERFORM set_config('autovacuum', 'off', false); -- Server-level only
     
     RAISE NOTICE 'Database configured for ETL mode. Remember to call restore_normal_mode() after ETL completion.';
 END;
