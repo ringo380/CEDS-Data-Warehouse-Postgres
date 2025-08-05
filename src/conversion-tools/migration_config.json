@@ -1,0 +1,271 @@
+{
+  "source": {
+    "sql_server": {
+      "driver": "ODBC Driver 17 for SQL Server",
+      "server": "localhost\\SQLEXPRESS",
+      "database": "CEDS-Data-Warehouse-V11.0.0.0",
+      "username": "migration_user",
+      "password": "your_sql_server_password",
+      "trusted_connection": false,
+      "connection_timeout": 30,
+      "command_timeout": 300
+    }
+  },
+  "target": {
+    "postgresql": {
+      "host": "localhost",
+      "port": 5432,
+      "database": "ceds_data_warehouse_v11_0_0_0",
+      "username": "ceds_admin",
+      "password": "your_postgresql_password",
+      "connection_timeout": 30,
+      "sslmode": "prefer"
+    }
+  },
+  "migration": {
+    "max_parallel_workers": 3,
+    "batch_size": 10000,
+    "log_directory": "./logs",
+    "temp_directory": "./temp",
+    "enable_progress_tracking": true,
+    "rollback_on_error": false,
+    "skip_empty_tables": true,
+    "validate_data_integrity": true,
+    "create_backups": true,
+    "optimize_performance": true
+  },
+  "tables": [
+    {
+      "name": "DimSchoolYears",
+      "schema": "RDS",
+      "priority": 1,
+      "enabled": true,
+      "estimated_rows": 50,
+      "notes": "Time dimension - load first"
+    },
+    {
+      "name": "DimK12Schools",
+      "schema": "RDS", 
+      "priority": 2,
+      "enabled": true,
+      "estimated_rows": 125000,
+      "notes": "School dimension"
+    },
+    {
+      "name": "DimK12Students",
+      "schema": "RDS",
+      "priority": 2,
+      "enabled": true,
+      "estimated_rows": 2500000,
+      "notes": "Student dimension"
+    },
+    {
+      "name": "DimLeas",
+      "schema": "RDS",
+      "priority": 2,
+      "enabled": true,
+      "estimated_rows": 18000,
+      "notes": "Local Education Agency dimension"
+    },
+    {
+      "name": "DimSeas",
+      "schema": "RDS",
+      "priority": 2,
+      "enabled": true,
+      "estimated_rows": 60,
+      "notes": "State Education Agency dimension"
+    },
+    {
+      "name": "DimK12Demographics",
+      "schema": "RDS",
+      "priority": 2,
+      "enabled": true,
+      "estimated_rows": 1000,
+      "notes": "Demographics dimension"
+    },
+    {
+      "name": "DimIdeaStatuses",
+      "schema": "RDS",
+      "priority": 2,
+      "enabled": true,
+      "estimated_rows": 500,
+      "notes": "IDEA status dimension"
+    },
+    {
+      "name": "DimGradeLevels",
+      "schema": "RDS",
+      "priority": 2,
+      "enabled": true,
+      "estimated_rows": 100,
+      "notes": "Grade level dimension"
+    },
+    {
+      "name": "DimProgramStatuses",
+      "schema": "RDS",
+      "priority": 2,
+      "enabled": true,
+      "estimated_rows": 200,
+      "notes": "Program status dimension"
+    },
+    {
+      "name": "DimTitleIStatuses",
+      "schema": "RDS",
+      "priority": 2,
+      "enabled": true,
+      "estimated_rows": 50,
+      "notes": "Title I status dimension"
+    },
+    {
+      "name": "FactK12StudentEnrollments",
+      "schema": "RDS",
+      "priority": 3,
+      "enabled": true,
+      "estimated_rows": 5000000,
+      "notes": "Main enrollment fact table - load after dimensions"
+    },
+    {
+      "name": "FactK12StudentCounts",
+      "schema": "RDS",
+      "priority": 3,
+      "enabled": true,
+      "estimated_rows": 3000000,
+      "notes": "Student count fact table"
+    },
+    {
+      "name": "FactK12StudentAssessments",
+      "schema": "RDS",
+      "priority": 3,
+      "enabled": true,
+      "estimated_rows": 8000000,
+      "notes": "Assessment fact table"
+    },
+    {
+      "name": "FactK12StaffCounts",
+      "schema": "RDS",
+      "priority": 3,
+      "enabled": true,
+      "estimated_rows": 1500000,
+      "notes": "Staff count fact table"
+    },
+    {
+      "name": "K12Enrollment",
+      "schema": "Staging",
+      "priority": 4,
+      "enabled": true,
+      "estimated_rows": 1000000,
+      "notes": "Staging enrollment data"
+    },
+    {
+      "name": "K12StudentCourseSection",
+      "schema": "Staging",
+      "priority": 4,
+      "enabled": true,
+      "estimated_rows": 2000000,
+      "notes": "Staging course section data"
+    },
+    {
+      "name": "Assessment",
+      "schema": "Staging",
+      "priority": 4,
+      "enabled": true,
+      "estimated_rows": 500000,
+      "notes": "Staging assessment data"
+    },
+    {
+      "name": "PersonStatus",
+      "schema": "Staging",
+      "priority": 4,
+      "enabled": true,
+      "estimated_rows": 800000,
+      "notes": "Staging person status data"
+    },
+    {
+      "name": "SourceSystemReferenceData",
+      "schema": "Staging",
+      "priority": 4,
+      "enabled": true,
+      "estimated_rows": 50000,
+      "notes": "Reference data mappings"
+    },
+    {
+      "name": "ValidationErrors",
+      "schema": "Staging",
+      "priority": 5,
+      "enabled": true,
+      "estimated_rows": 10000,
+      "notes": "ETL validation errors"
+    }
+  ],
+  "data_type_mappings": {
+    "nvarchar": "varchar",
+    "nchar": "char", 
+    "ntext": "text",
+    "datetime": "timestamp",
+    "datetime2": "timestamp",
+    "smalldatetime": "timestamp",
+    "bit": "boolean",
+    "tinyint": "smallint",
+    "money": "numeric(19,4)",
+    "smallmoney": "numeric(10,4)",
+    "uniqueidentifier": "uuid",
+    "image": "bytea",
+    "varbinary": "bytea",
+    "binary": "bytea"
+  },
+  "performance_settings": {
+    "postgresql": {
+      "work_mem": "1GB",
+      "maintenance_work_mem": "2GB", 
+      "shared_buffers": "4GB",
+      "effective_cache_size": "12GB",
+      "checkpoint_completion_target": 0.9,
+      "synchronous_commit": "off",
+      "wal_buffers": "64MB",
+      "max_parallel_workers_per_gather": 4
+    },
+    "bulk_operations": {
+      "disable_triggers": true,
+      "disable_indexes": false,
+      "use_copy_command": true,
+      "commit_batch_size": 50000,
+      "parallel_loading": true
+    }
+  },
+  "validation": {
+    "row_count_comparison": true,
+    "sample_data_verification": true,
+    "foreign_key_integrity": true,
+    "data_type_validation": true,
+    "null_value_checking": true,
+    "duplicate_detection": true,
+    "custom_business_rules": []
+  },
+  "error_handling": {
+    "continue_on_error": true,
+    "max_errors_per_table": 100,
+    "error_log_level": "WARNING",
+    "create_error_tables": true,
+    "quarantine_bad_data": true
+  },
+  "monitoring": {
+    "progress_reporting_interval": 30,
+    "performance_metrics": true,
+    "memory_usage_tracking": true,
+    "disk_space_monitoring": true,
+    "connection_pool_monitoring": true
+  },
+  "security": {
+    "encrypt_connection": true,
+    "mask_sensitive_data": false,
+    "audit_migration_activities": true,
+    "data_classification_aware": false
+  },
+  "post_migration": {
+    "update_statistics": true,
+    "rebuild_indexes": true,
+    "reset_sequences": true,
+    "validate_constraints": true,
+    "cleanup_staging_data": false,
+    "generate_migration_report": true
+  }
+}
