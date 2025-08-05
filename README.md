@@ -35,16 +35,16 @@ createdb ceds_data_warehouse_v11_0_0_0
 psql -d ceds_data_warehouse_v11_0_0_0
 ```
 
-#### 2. Apply Database Configuration
+#### 2. Set Up Schemas and Security
 ```bash
 # Navigate to conversion tools directory
 cd src/conversion-tools
 
-# Apply PostgreSQL-specific database settings
-psql -d ceds_data_warehouse_v11_0_0_0 -f postgresql-database-configuration.sql
-
-# Set up schemas and security
+# First, create schemas and security roles (must be done before configuration)
 psql -d ceds_data_warehouse_v11_0_0_0 -f postgresql-schemas-and-security.sql
+
+# Then apply PostgreSQL-specific database settings
+psql -d ceds_data_warehouse_v11_0_0_0 -f postgresql-database-configuration.sql
 ```
 
 #### 3. Create Database Structure
