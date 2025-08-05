@@ -47,15 +47,18 @@ psql -d ceds_data_warehouse_v11_0_0_0 -f postgresql-schemas-and-security.sql
 psql -d ceds_data_warehouse_v11_0_0_0 -f postgresql-database-configuration.sql
 ```
 
-#### 3. Create Database Structure
+#### 3. Create Database Structure ⚠️ CRITICAL STEP
 ```bash
-# Create tables, functions, and views using the PostgreSQL DDL script
+# IMPORTANT: Create all tables, functions, and views BEFORE loading data
+# This step creates 100+ dimension and fact tables required for the data warehouse
 psql -d ceds_data_warehouse_v11_0_0_0 -f ../ddl/CEDS-Data-Warehouse-V11.0.0.0-PostgreSQL.sql
 ```
 
+**⚠️ Do not skip this step!** The dimension data loader will fail if the tables don't exist.
+
 #### 4. Load Dimension Data
 ```bash
-# Load CEDS Elements and Option Set values
+# Load CEDS Elements and Option Set values (requires tables from step 3)
 psql -d ceds_data_warehouse_v11_0_0_0 -f postgresql-dimension-data-loader.sql
 
 # Populate junk tables
